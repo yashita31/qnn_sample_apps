@@ -1,0 +1,8 @@
+onnx==1.17.0
+onnxruntime==1.19.2
+onnxruntime_qnn==1.19.0
+opencv_python==4.10.0.84
+setuptools==65.5.0
+setuptools==75.2.0
+torch==2.5.1
+torchvision==0.20.1
