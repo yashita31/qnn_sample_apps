@@ -31,6 +31,7 @@ To Install:
 >> cd \qnn_sample_apps
 >> pytest -v (-vv)
 ```
+Directory Structure
 ```
 qnn_sample_apps
 ├─ .gitignore
