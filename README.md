@@ -1,7 +1,7 @@
 # qnn_sample_apps
 //README is still a work in progress
 
-<u>**Please note: This has only been validated using Windows 11 Enterprise Snapdragon(R) X Elite**</u>
+**Please note: This has only been validated using Windows 11 Enterprise Snapdragon(R) X Elite**
 
 **To Install:**
    1. git clone repo
