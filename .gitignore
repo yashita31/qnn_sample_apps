@@ -5,3 +5,5 @@ launch.json
 notebooks/.ipynb_checkpoints/
 *.log
 *.pyd
+.pytest_cache/
+.vscode/
