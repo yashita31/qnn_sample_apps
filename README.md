@@ -6,17 +6,25 @@ Please note this has only been tested Windows 11 Enterprise  Snapdragon(R) X Eli
 To Install:
    1. git clone repo
    2. Create virtual environment
+      ```
       >> python3.11 -m virtual_env env_sample_app_hrnet
+      ```
    3. Activate virtual environment
+      ```
       >> env_sample_app_hrnet/Scripts/activate.ps1 (Windows)
       >> src env_sample_app_hrnet/bin/activate (Linux)  #hasn't been tested in Linux, won't work via WSL
+      ```
    4. Install dependencies
+      ```
       >> pip install -r requirements.txt
+      ```
 
 
 To run: </br>
-python main.py (from root directory) </br>
+```
+python main.py (from root directory)
 python main.py --system "windows" --model "hrnet_pose" --processor "cpu" --available_cameras False
+```
 
 **Before making any push run pytest -v from root directory (qnn_sample_apps\)**
 >> cd \qnn_sample_apps
