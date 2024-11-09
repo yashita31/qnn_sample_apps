@@ -1,7 +1,7 @@
 # qnn_sample_apps
 //README is still a work in progress
 
-**Please note: This has only been validated using Windows 11 Enterprise Snapdragon(R) X Elite**
+**<u>Please note: This has only been validated using Windows 11 Enterprise Snapdragon(R) X Elite</u>**
 
 **To Install:**
    1. git clone repo
@@ -26,7 +26,7 @@
 >> python ./src/hrnet_pose/main.py --system "windows" --model "hrnet_pose" --processor "cpu" --available_cameras False
 ```
 
-**Before making any push run pytest -v from root directory (qnn_sample_apps\)**
+**Before making any push run pytest -v from root directory (qnn_sample_apps)**
 ```
 >> cd \qnn_sample_apps
 >> pytest -v (-vv)
