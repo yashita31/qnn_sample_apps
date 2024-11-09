@@ -3,7 +3,7 @@
 
 **Please note: This has only been validated using Windows 11 Enterprise Snapdragon(R) X Elite**
 
-To Install:
+**To Install:**
    1. git clone repo
    2. Create virtual environment
       ```
@@ -20,7 +20,7 @@ To Install:
       ```
 
 
-  To run: </br>
+**To run:** </br>
 ```
 >> python ./src/hrnet_pose/main.py (from root directory)
 >> python ./src/hrnet_pose/main.py --system "windows" --model "hrnet_pose" --processor "cpu" --available_cameras False
@@ -31,7 +31,7 @@ To Install:
 >> cd \qnn_sample_apps
 >> pytest -v (-vv)
 ```
-Directory Structure
+**Directory Structure:**
 ```
 qnn_sample_apps
 ├─ .gitignore
