@@ -1,0 +1,3 @@
+Automation
+Setup: automatically install SDK and other dependencies (this isn't necessary, newer versions of onnxruntime have QNN dependencies)
+Deployment Scripts
