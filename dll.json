@@ -1,4 +1,6 @@
+
 {
+    "_comment": "**DEPRECATED** This contains configuration settings if you're utilizing Qualcomm SDK. If you're using ONNX Runtime > 1.18.0 this isn't necessary",
     "WINDOWS":
     {
         "CPU":"qnn_sdk/qairt/2.26.0.240828/lib/aarch64-windows-msvc/QnnCpu.dll",
