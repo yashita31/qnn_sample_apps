@@ -34,7 +34,6 @@ To Install:
 ```
 qnn_sample_apps
 ├─ .gitignore
-├─ .vscode
 ├─ dll.json
 ├─ executioner.json
 ├─ models.json
