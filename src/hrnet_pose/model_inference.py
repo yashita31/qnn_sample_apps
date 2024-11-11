@@ -6,26 +6,15 @@ import numpy as np
 
 from torchvision.transforms import v2
 from torchvision.transforms.functional import InterpolationMode
-from onnxruntime import InferenceSession
+from onnxruntime import InferenceSession, NodeArg
 from PIL import Image
 from typing import List,Tuple
 
 class ModelInference():
     """
-    A class for handling model inference with ONNX models for pose estimation using OpenCV and PyTorch.
-
-    Attributes:
-    ----------
-    session : InferenceSession
-        The ONNX inference session for model execution.
-    _expected_inputs : Any
-        Expected input configuration from the ONNX model.
-    expected_shape : Tuple[int, int, int, int]
-        The expected shape of model input in (batch, channels, height, width) format.
-    device : torch.device
-        The device used for inference (CPU or CUDA).
+    A class for handling model inference for pose estimation (HRnet_pose) using OpenCV and PyTorch.
     """
-    def __init__(self, session: InferenceSession):
+    def __init__(self, session: InferenceSession) -> None:
         """
         Initialize the ModelInference class.
 
@@ -45,7 +34,7 @@ class ModelInference():
             v2.ConvertImageDtype(torch.float32),                                                # Converts to float32 AND Scales
         ])
     
-    def _image_transformer(self, frame: Image) -> torch.tensor:
+    def _image_transformer(self, frame: Image) -> Tuple[np.array, np.array]:
         """
         Transforms the input image to match the model's expected input format.
 
@@ -62,12 +51,12 @@ class ModelInference():
         
         transformed_frame = self.transformer(frame)
         transformed_frame_np = transformed_frame.cpu().numpy() if self.device == "gpu" else transformed_frame.numpy()
-        transformed_frame_inference = np.expand_dims(transformed_frame_np,axis=0)#np.expand_dims(np.transpose(transformed_frame,(2,0,1)),axis=0)
+        transformed_frame_inference = np.expand_dims(transformed_frame_np,axis=0)
         final_frame = np.transpose(transformed_frame_np, (1,2,0))
 
         return (final_frame, transformed_frame_inference)
     
-    def inference(self, camera=1):                                                              # Will generalize this even more to work with all models
+    def inference(self, camera: int=1) -> None:                                                              # Will generalize this even more to work with all models
         """
         Conducts inference by capturing frames from a camera, processing them, and displaying results.
 
@@ -95,8 +84,10 @@ class ModelInference():
             cv.imshow('frame', frame)
             if cv.waitKey(1) == ord('q'):
                 break
+        cap.release()
+        cv.destroyAllWindows()
            
-    def _inference_onnx(self, inference_frame: np.array, scaler: int=None, solo_scaler=False) -> List[Tuple[int,int]]:
+    def _inference_onnx(self, inference_frame: np.array, scaler: int=None, solo_scaler: bool=False) -> List[Tuple[int,int]]:
         """
         Performs inference on the input frame using the ONNX model and scales keypoints.
 
@@ -138,7 +129,7 @@ class ModelInference():
 
 
 
-    def _frame_shape(self, cap: cv.VideoCapture) -> tuple:
+    def _frame_shape(self, cap: cv.VideoCapture) -> Tuple[int,int]:
         """
         Determines the output shape of a frame after inference scaling.
 
@@ -159,9 +150,9 @@ class ModelInference():
         return output_shape[0]
 
     
-    def _frame_processor(self, frame: np.array):
+    def _frame_processor(self, frame: np.array) -> Tuple[np.array, np.array]:
         """
-        Processes the input frame to match model input requirements.
+        Processes the input frame to match model input expectations.
 
         Parameters:
         ----------
@@ -209,7 +200,7 @@ class ModelInference():
         return f"Available Cameras: {' | '.join(available_cameras)}"
 
     @property
-    def expected_inputs(self):
+    def expected_inputs(self) -> NodeArg:
         """
         Returns the expected inputs for the model.
 
@@ -218,6 +209,7 @@ class ModelInference():
         Any
             The expected inputs configuration for the ONNX model.
         """
+    
         return self._expected_inputs
 
 if __name__=="__main__":
@@ -231,7 +223,7 @@ if __name__=="__main__":
 
     iInfer = ModelInference(session)
     print(iInfer.expected_inputs)
-    iInfer.inference(camera=1)
+    # iInfer.inference(camera=1)
 
 
 

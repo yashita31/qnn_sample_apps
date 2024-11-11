@@ -18,6 +18,7 @@ def main():
     parser.add_argument("--system", type=str, default="windows")
     parser.add_argument("--model", type=str, default="hrnet_pose")
     parser.add_argument("--processor", type=str, default="cpu")
+    parser.add_argument("--camera", type=int, default=0)
     parser.add_argument("--available_cameras", type=bool, default=False)
 
     args = parser.parse_args()
@@ -29,9 +30,8 @@ def main():
 
     if args.available_cameras:
         logger.info(iInfer.available_cameras)
-        # print(iInfer.available_cameras)
 
-    iInfer.inference(camera=1)
+    iInfer.inference(camera=args.camera)
 
 if __name__=="__main__":
     main()
