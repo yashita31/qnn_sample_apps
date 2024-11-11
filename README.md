@@ -12,8 +12,8 @@
    3. Activate virtual environment
       ```
       >> env_sample_app_hrnet/Scripts/activate.ps1 (Windows: Validated)
-      >> src env_sample_app_hrnet/bin/activate (Linux)  # Will not work via WSL due to camera binding issue within WSL
       >> src env_sample_app_hrnet/bin/activate (Mac: Validated)
+      >> src env_sample_app_hrnet/bin/activate (Linux: Not Validated)  # Will not work via WSL due to camera binding issue within WSL
       ```
    4. Install dependencies
       ```
