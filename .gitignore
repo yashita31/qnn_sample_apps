@@ -1,4 +1,4 @@
-models/
+models/*onnx
 __pycache__/
 launch.json
 *.egg-info/

@@ -23,10 +23,10 @@
 **To run:** </br>
 ```
 >> python ./src/hrnet_pose/main.py (from root directory)
->> python ./src/hrnet_pose/main.py --system "windows" --model "hrnet_pose" --processor "cpu" --available_cameras False
+>> python ./src/hrnet_pose/main.py --system windows --model hrnet_pose --processor cpu --camera 1 --available_cameras False
 ```
 
-**Before making any push run pytest -v from root directory (qnn_sample_apps)**
+**Before making any push to remote repository, run pytest -v from root directory (qnn_sample_apps)**
 ```
 >> cd \qnn_sample_apps
 >> pytest -v (-vv)

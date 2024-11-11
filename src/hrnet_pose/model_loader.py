@@ -3,7 +3,23 @@ import os
 import json
 
 class ModelLoader:
-    def __init__(self, model: str, processor: str):
+    def __init__(self, model: str, processor: str) -> None:
+        """
+        Initializes an instance with the specified model and processor.
+
+        This constructor sets up the model name, processor type, and configuration directory path.
+        The configuration directory is set to the directory two levels up from the current file location.
+
+        Args:
+            model (str): The name of the model to be used.
+            processor (str): The type of processor (e.g., "cpu", "npu").
+
+        Attributes:
+            model (str): Stores the name of the specified model.
+            processor (str): Stores the processor type.
+            config_dir (str): The absolute path to the configuration directory, located two levels up 
+                            from the current file directory.
+        """
         self.processor = processor.upper()
         self.model = model
         self.config_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
@@ -25,18 +41,18 @@ class ModelLoader:
 
         return config 
 
-    def _get_model_path(self, model_name: str, ) -> ort.InferenceSession:
+    def _get_model_path(self, model_name: str) -> ort.InferenceSession:
         """
-        Retrieves the absolute path of an ONNX model based on the model name provided, using the path specified in a JSON configuration file.
+        Retrieves the absolute path of an ONNX model based on the model name provided, using the path specified within models.json configuration file.
 
         Args:
-            model_name (str): The name of the model to load. This should correspond to a key in the JSON configuration file.
+            model_name (str): The name of the model to load. This should correspond to a key in the models.json configuration file.
 
         Returns:
             str: The absolute path to the ONNX model file.
 
         Raises:
-            ValueError: If the specified model name is not found in the JSON configuration file.
+            ValueError: If the specified model name is not found in the models.json configuration file.
         """
 
         config = self._get_config(filename="models.json")
@@ -48,12 +64,12 @@ class ModelLoader:
 
         return model_path
 
-    def _get_dll_path(self, system: str, processor: str, runtime="qnn") -> str:
+    def _get_dll_path(self, system: str, processor: str, runtime: str="qnn") -> str:
         """
         //DEPRECATED//
 
         Retrieves the absolute path of a specified DLL file based on the system and processor type.
-        The path is determined from a JSON configuration file.
+        The path is determined from the dll.json configuration file.
 
         Args:
             dll_name (str): The name of the DLL to load. 
@@ -62,7 +78,7 @@ class ModelLoader:
             str: The absolute path to the DLL file.
 
         Raises:
-            KeyError: If the specified system or processor type is not found in the JSON configuration file.
+            KeyError: If the specified system or processor type is not found in the dll.json configuration file.
         """
         config_file_name = "dll.json"
         config = self._get_config(filename= config_file_name)
@@ -76,19 +92,19 @@ class ModelLoader:
     
     def _get_executioner(self) -> str:
         """
-        Retrieves the executioner configuration for a specified processor.
+        Retrieves the ExecutionProvider configuration for a specified processor.
 
         This function loads a configuration file (executioner.json) containing available processors 
-        and their corresponding configurations. It checks if the specified processor is available 
+        and their corresponding ExecutionProvider. It checks if the specified processor is available 
         in the configuration file. If the processor is not listed, it raises an error indicating 
-        the available options. If the processor is found, it returns the relevant configuration 
+        the available options. If the processor is found, it returns the relevant ExecutionProvider 
         for the selected processor.
 
         Returns:
-            str: The configuration setting for the specified processor.
+            str: The ExecutionProvider for the specified processor.
 
         Raises:
-            ValueError: If the specified processor is not available in the configuration file.
+            ValueError: If the specified processor does not have a supported ExecutionProvider.
         """
         config_file_name = "executioner.json"
         config = self._get_config(filename= config_file_name)
@@ -100,16 +116,14 @@ class ModelLoader:
 
     def load_model(self) -> ort.InferenceSession:
         """
-        Loads an ONNX model with specified system and processor settings, enabling profiling.
+        Loads an ONNX model with specified system and processor settings.
 
         Args:
             model_name (str): The name of the model to load.
-            system (str): The operating system type for which the DLL is configured (e.g., "Windows", "Linux").
-            processor (str): The processor type required for the DLL (e.g., "x86", "arm").
 
         Returns:
             ort.InferenceSession: An ONNX Runtime InferenceSession configured with the specified model, 
-                                execution provider, and profiling options.
+                                execution provider.
         """
 
         model_path = self._get_model_path(model_name=self.model)
@@ -118,7 +132,7 @@ class ModelLoader:
         return session
     
     @property
-    def executioners(self):
+    def executioners(self) -> str:
         """
         Retrieves and lists available executioners from a configuration file.
 
