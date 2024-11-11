@@ -38,6 +38,8 @@ qnn_sample_apps
 ├─ .gitignore
 ├─ dll.json
 ├─ executioner.json
+├─ models
+│  └─ README.md
 ├─ models.json
 ├─ notebooks
 │  └─ sample_app_hrnet.ipynb
