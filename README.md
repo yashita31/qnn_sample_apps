@@ -19,7 +19,10 @@
       ```
       >> pip install -r requirements.txt
       ```
-   5. Download model from AI Hub 
+=======
+   5. Download model from AI Hub
+       
+
       https://aihub.qualcomm.com/compute/models/hrnet_pose?domain=Computer+Vision&useCase=Pose+Estimation
 
    6. Transfer model to qnn_sample_apps/models/
