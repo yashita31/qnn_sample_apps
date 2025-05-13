@@ -1,4 +1,12 @@
 {
-    "NPU": "QNNExecutionProvider",
-    "CPU": "CPUExecutionProvider"
+    "NPU": {
+        "EP":"QNNExecutionProvider",
+        "PATH":"capi/QnnHtp.dll"
+    },
+
+    "CPU": 
+    {
+        "EP": "CPUExecutionProvider",
+        "PATH": "capi/QnnCpu.dll"
+    }
 }

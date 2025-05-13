@@ -4,7 +4,7 @@ import os
 import onnxruntime as ort
 
 from unittest.mock import Mock, patch
-from src.hrnet_pose.model_loader import ModelLoader
+from src.model_loader import ModelLoader
 
 class TestModelLoader():
 
@@ -13,12 +13,25 @@ class TestModelLoader():
                             "CPU": "CPUExecutionProvider"
                            }
     mock_models_config = {
-                        "MODELS":{
-                                    "HRNET_POSE": "models/hrnet_pose.onnx",
-                                    "HRNET_POSE_W44": "models/hrnet_pose_w44.onnx"
+                            "MODELS": {
+                                "HRNET_POSE": {
+                                    "PATH_SUBDIRECTORY": "hrnet_pose",
+                                    "DEFAULT": "hrnet_pose.onnx",
+                                    "QUANTIZED": "hrnet_quantized.onnx"
+                                },
+                                "DEEPSEEK_7B": {
+                                    "PATH_SUBDIRECTORY": "qnn-deepseek-r1-distill-qwen-7b",
+                                    "DEFAULT":{
+                                        "EMBEDDING": "deepseek_r1_7b_embeddings_quant_v1.0.onnx",
+                                        "CONTEXT": "deepseek_r1_7b_ctx_v1.0.onnx_ctx.onnx",
+                                        "CONTEXT_ITER": "deepseek_r1_7b_iter_v1.0.onnx_ctx.onnx",
+                                        "HEAD": "deepseek_r1_7b_head_quant_v1.0.onnx",
+                                        "TOKENIZER": "tokenizer.json"
+                                    }
                                 }
+                            }
                         }
-    
+                            
     def test_get_executioner(self):
         processor = "cpu"
         iLoad = ModelLoader(Mock(),processor=processor)
