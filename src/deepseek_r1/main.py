@@ -1,9 +1,18 @@
+"""
+author: Derrick Johnson
+date: 05/12/2025
+todo: 
+    replace print with logging
+    add comments
+"""
+
 import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 import argparse
 import logging
+import numpy as np
 
 from model_loader import ModelLoader
 from deepseek_model_inference import DeepSeekModelInference
@@ -21,12 +30,50 @@ def main():
 
     parser = argparse.ArgumentParser(description="DeepSeek R1 App: Run main.py with or without arguments")
 
-    parser.add_argument("--query", type=str, default="what is the key to a happy life")
-    parser.add_argument("--persona", type=str, default="")
-    parser.add_argument("--system", type=str, default="windows")
-    parser.add_argument("--model", type=str, default="deepseek_7b")
-    parser.add_argument("--processor", type=str, default="npu")
-    parser.add_argument("--model_type", type=str, default="default")
+    parser.add_argument("--query", 
+                        type=str, 
+                        default="What is the key to a happy life, give me some steps I can follow.",
+                        help="Initial Query")
+    parser.add_argument("--persona", 
+                        type=str, 
+                        default="",
+                        help="Personas Available: THERAPIST, CYBER_SECURITY, CHEF, CARE_TAKER")
+    parser.add_argument("--system", 
+                        type=str, 
+                        default="windows",
+                        help="Operating System")
+    parser.add_argument("--model", 
+                        type=str, 
+                        default="deepseek_7b",
+                        help="Models: deepseek_7b, deepseek_14b")
+    parser.add_argument("--processor", 
+                        type=str, 
+                        default="npu",
+                        help="Processors Available: Hexagon(NPU), CPU")
+    parser.add_argument("--model_type", 
+                        type=str, 
+                        default="default",
+                        help="All DeepSeek Models are Quantized (Do Not Change)")
+    parser.add_argument("--max_tokens", 
+                        type=int, 
+                        default=100,
+                        help="Max Tokens to Generate")
+    parser.add_argument("--temperature", 
+                        type=float, 
+                        default=0.6,
+                        help="Temperature Scaling")
+    parser.add_argument("--top_k", 
+                        type=int, 
+                        default=5,
+                        help="Top K")
+    parser.add_argument("--repetition_penalty", 
+                        type=float, 
+                        default=1.1,
+                        help="Repetition Penalty")
+    parser.add_argument("--verbose",
+                        type=int,
+                        default=0,
+                        help="Verbose levels: 0:None, 1:Basic, 2:Detailed")
 
     args = parser.parse_args()
 
@@ -42,9 +89,15 @@ def main():
     iInfer = DeepSeekModelInference(model_sessions=model_sessions,
                                     tokenizer= tokenizer,
                                     model_subdirectory=model_subdirectory,
-                                    verbose=2)
+                                    verbose=args.verbose)
     
-    iInfer.embedding_session(query=args.query, persona=args.persona)
+    iInfer.run_inference(query=args.query,
+                         top_k=args.top_k,
+                         temperature=args.temperature,
+                         persona=args.persona,
+                         max_tokens=args.max_tokens,
+                         repetition_penalty=args.repetition_penalty)
+    
 
 if __name__=="__main__":
     main()
