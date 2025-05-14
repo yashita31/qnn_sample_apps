@@ -1,3 +1,7 @@
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 import argparse
 import logging
 
@@ -20,12 +24,14 @@ def main():
     parser.add_argument("--processor", type=str, default="cpu")
     parser.add_argument("--camera", type=int, default=0)
     parser.add_argument("--available_cameras", type=bool, default=False)
+    parser.add_argument("--model_type", type=str, default="default")
 
     args = parser.parse_args()
 
-    iLoad = ModelLoader(model=args.model, processor=args.processor)
-    session = iLoad.load_model()
+    iLoad = ModelLoader(model=args.model, processor=args.processor, 
+                        model_type=args.model_type)
 
+    session = iLoad.load_model(iLoad.graphs)
     iInfer = ModelInference(session=session)
 
     if args.available_cameras:

@@ -1,9 +1,24 @@
-# qnn_sample_apps
-//README is still a work in progress
+# HRNET Pose Sample App
 
-**Please note: This has only been validated using Windows 11 Enterprise Snapdragon(R) X Elite**
+## Table of Contents
+1. [About](#about)
+2. [Project Status](#project-status)
+3. [Setup](#setup)
+4. [Run](#run)
+5. [Directory Structure](#directory-structure)
 
-**To Install:**
+## About
+This app is provided as a pose detection sample using the open source HRNET-POSE model from Qualcomm AI Hub. The application uses ONNX runtime (ORT) to enable the model to run cross-platform.
+
+On the Snapdragon X Elite, the model is optimized to leverage the Neural Processing Unit (NPU) at inference runtime. Elsewhere, it will run using the CPU.
+
+## Project Status
+This sample python app has only been validated using Windows 11 Enterprise Snapdragon(R) X Elite
+
+## Setup
+Follow these steps to setup the app for your platform.
+
+### Snapdragon X Elite
    1. git clone repo
    2. Create virtual environment
       ```
@@ -19,30 +34,28 @@
       ```
       >> pip install -r requirements.txt
       ```
-=======
-   5. Download model from AI Hub
-       
-
+   5. Download model from AI Hub 
       https://aihub.qualcomm.com/compute/models/hrnet_pose?domain=Computer+Vision&useCase=Pose+Estimation
 
    6. Transfer model to qnn_sample_apps/models/
       ```
-      >> mv Downloads/hrnex_pose.onnx qnn_sample_apps/models/
+      >> mv Downloads/hrnet_pose.onnx qnn_sample_apps/models/
       ```
 
+### Mac/Linux
+Coming Soon
 
-**To run:** </br>
+## Run
+<!-- **To run:** </br> -->
 ```
 >> python ./src/hrnet_pose/main.py (from root directory)
 >> python ./src/hrnet_pose/main.py --system windows --model hrnet_pose --processor cpu --camera 1 --available_cameras False
 ```
 
-**Unit testing required prior to pushing to remote repository, run pytest -v from root directory (qnn_sample_apps):**
-```
->> cd \qnn_sample_apps
->> pytest -v (-vv)
-```
-**Directory Structure:**
+## Contributing
+We welcome contributions to this repository! Please refer to our [contributing guide](CONTRIBUTING.md) for how to contribute.
+
+## Directory Structure
 ```
 qnn_sample_apps
 ├─ .gitignore
