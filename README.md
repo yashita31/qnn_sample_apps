@@ -62,5 +62,5 @@ We welcome contributions to this repository! Please refer to our [contributing g
 
 ## Directory Structure
 ## License
-This project is licensed under the [MIT](LICENSE)
+This project is licensed under the [MIT](https://github.com/DerrickJ1612/qnn_sample_apps/blob/main/LICENSE.txt)
 
