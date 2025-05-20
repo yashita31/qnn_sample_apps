@@ -12,6 +12,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 import argparse
 import logging
+import time
 import numpy as np
 
 from model_loader import ModelLoader
@@ -83,21 +84,26 @@ def main():
     model_subdirectory = iLoad.model_subdirectory_path
 
     graphs = iLoad.graphs
-    model_sessions = {graph_name: iLoad.load_model(graph) for graph_name,graph in graphs.items() if graph.endswith(".onnx")}
+    model_sessions = {graph_name: iLoad.load_model(graph) for graph_name,graph in graphs.items() if str(graph).endswith(".onnx")}
     tokenizer = next((file for file in graphs.values() if file.endswith("tokenizer.json")), None)
+    meta_data = graphs["META_DATA"]
 
     iInfer = DeepSeekModelInference(model_sessions=model_sessions,
                                     tokenizer= tokenizer,
                                     model_subdirectory=model_subdirectory,
+                                    model_meta=meta_data,
                                     verbose=args.verbose)
-    
+    start = time.time()
     iInfer.run_inference(query=args.query,
                          top_k=args.top_k,
                          temperature=args.temperature,
                          persona=args.persona,
                          max_tokens=args.max_tokens,
                          repetition_penalty=args.repetition_penalty)
-    
+    end = time.time()
+    elapsed = end - start
+    tps = np.round((args.max_tokens / elapsed),2)
+    print(f"\nTokens Per Second: {tps}")
 
 if __name__=="__main__":
     main()

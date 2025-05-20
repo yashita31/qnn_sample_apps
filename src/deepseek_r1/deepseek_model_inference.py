@@ -32,12 +32,12 @@ class InferencePersona(Enum):
 @dataclass
 class ModelParameters:
     batch_size: int=1
-    num_heads: int=28
+    num_heads: int=12
     attn_head_size: int=128
     num_layers: int=28
     max_seq_len: int=64
     temp: float=0.6 # Unnecessary, passing directly to generate function from args
-    num_key_value_heads: int=4
+    num_key_value_heads: int=2
     seq_len: Optional[int] = None
     hidden_size: Optional[int] = None
 
@@ -49,13 +49,14 @@ class DeepSeekModelInference():
     def __init__(self, model_sessions: Dict[str,ort.InferenceSession], 
                  tokenizer: str,
                  model_subdirectory: Path,
+                 model_meta: dict,
                  verbose: VerbosityLevel = VerbosityLevel.NONE):
         self.session_mapper = model_sessions
         self.root_dir = Path.cwd()
         self.model_subdirectory = model_subdirectory
         self.tokenizer_path = model_subdirectory/tokenizer
         self.tokenizer = Tokenizer.from_file(str(self.tokenizer_path))
-        self.model_params = ModelParameters()
+        self.model_params = ModelParameters(**model_meta)
         self.verbose = verbose
         self.softmax = lambda x, temperature=1: np.exp((x-np.max(x))/temperature)/np.sum(np.exp((x-np.max(x))/temperature), axis=-1)
 
