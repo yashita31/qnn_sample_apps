@@ -27,6 +27,7 @@ class InferencePersona(Enum):
     CYBER_SECURITY ="cyber security specialist"
     CHEF ="chef"
     CARE_TAKER = "care taker"
+    DOCTOR = "medical professional"
 
 @dataclass
 class ModelParameters:

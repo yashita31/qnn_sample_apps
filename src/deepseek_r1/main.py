@@ -32,12 +32,12 @@ def main():
 
     parser.add_argument("--query", 
                         type=str, 
-                        default="What is the key to a happy life, give me some steps I can follow.",
+                        default="Why are dogs so content with just being with their person?.",
                         help="Initial Query")
     parser.add_argument("--persona", 
                         type=str, 
                         default="",
-                        help="Personas Available: THERAPIST, CYBER_SECURITY, CHEF, CARE_TAKER")
+                        help="Personas Available: THERAPIST, CYBER_SECURITY, CHEF, CARE_TAKER, DOCTOR")
     parser.add_argument("--system", 
                         type=str, 
                         default="windows",
