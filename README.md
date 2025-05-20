@@ -7,6 +7,7 @@ This repository contains sample apps for running ONNX models efficiently using [
 4. [Quick Start](#quick-start)
 5. [Contributing](#contributing)
 6. [Directory Structure](#directory-structure)
+7. [License](#license)
 
 ## Available Apps
 | App Name               | Model Used | Providers | Quick Start                                                                          | Notebook                                                                                          | Notes |
@@ -60,4 +61,6 @@ models.py will automatically place models in appropriate destination
 We welcome contributions to this repository! Please refer to our [contributing guide](CONTRIBUTING.md) for how to contribute.
 
 ## Directory Structure
+## License
+This project is licensed under the [MIT](LICENSE)
 
