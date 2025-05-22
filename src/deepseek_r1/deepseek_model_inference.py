@@ -12,7 +12,7 @@ import logging
 
 from enum import IntEnum, Enum
 from tokenizers import Tokenizer
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 from pathlib import Path
 from dataclasses import dataclass
 from collections import defaultdict
@@ -107,22 +107,23 @@ class DeepSeekModelInference():
         init_prompts = self._cache_init(embedding_session_outputs)
         ctx_outputs = self.session_mapper["CONTEXT"].run(None, init_prompts)
         self.kv_cache = self.kv_cache_update(ctx_outputs=ctx_outputs)
-
+        hidden_states = ctx_outputs[0]
         self.verbosity_context(init_prompt_inputs=init_prompts,
                                ctx_outputs=ctx_outputs,
                                verbose=self.verbose)
-        return ctx_outputs
+        return hidden_states
 
-    def head_session(self, ctx_session_outputs: np.array) -> np.array:
-        output_hidden_states = ctx_session_outputs[0]
-        logits = self.session_mapper["HEAD"].run(None, {"output_hidden_states": output_hidden_states})[0]
+    def head_session(self, ctx_hidden_states: np.array) -> np.array:
+
+        logits = self.session_mapper["HEAD"].run(None, {"output_hidden_states": ctx_hidden_states})[0]
 
         # self.verbosity_head()
         
         return logits
     
     def context_itr_session(self, embedding_session_output: np.array,
-                            previous_sequence_length: int=64):
+                            previous_sequence_length: int=64,
+                            io_binding=True):
         seq_lengths = {
             "past_seq_len": np.array([[previous_sequence_length]], dtype=np.int32),
             "total_seq_len": np.array([previous_sequence_length+1], dtype=np.int32)
@@ -132,13 +133,38 @@ class DeepSeekModelInference():
             **self.kv_cache,
             **seq_lengths
         }
+        if io_binding:
+            if not hasattr(self,"iBindingManager"):
+                    raise ValueError("IO binding cannot proceed: 'iBindingManager' has not been initialized")
+            for name, value in iter_inputs.items():
+                self.iBindingManager.bind_input(
+                    name=name,
+                    buffer=value
+                )
+            self.iBindingManager.bind_output(
+                name = self.iBindingManager.layer_names[0],
+                buffer = self.output_hidden_states_buffer # need to add checks for all used buffers, do it at the top and abstract out
+            )
 
-        iter_outputs = self.session_mapper["CONTEXT_ITER"].run(None, iter_inputs)
-        self.kv_cache = self.kv_cache_update(ctx_outputs=iter_outputs) 
+            kv_shape_update = (1, self.model_params.num_heads, previous_sequence_length+1, self.model_params.attn_head_size)
 
+            self.iBindingManager.buffer_reallocation_kv(
+                updated_buffer_shape=kv_shape_update,
+                num_layers=self.model_params.num_layers,
+                present_key_buffer=self.present_key_buffer,
+                present_value_buffer=self.present_value_buffer,
+            )
+
+            self.session_mapper.get("CONTEXT_ITER").run_with_iobinding(self.iBindingManager.io_binding)
+            hidden_states = self.output_hidden_states_buffer
+
+        else:
+            iter_outputs = self.session_mapper["CONTEXT_ITER"].run(None, iter_inputs)
+            self.kv_cache = self.kv_cache_update(ctx_outputs=iter_outputs) 
+            hidden_states = iter_outputs[0]
         # self.verbosity_context_iter()
 
-        return iter_outputs
+        return hidden_states 
         
 
     def next_token_prediction(self, logits: list, generated_ids: list,
@@ -164,18 +190,35 @@ class DeepSeekModelInference():
                       temperature: float,
                       persona: Optional[str]=None, 
                       max_tokens: int=100,
-                      repetition_penalty: float=1.1
+                      repetition_penalty: float=1.1,
+                      io_binding: bool=True
                       ) -> None:
         
         # Iter set to false because this grabs the initial embeddings
         embedding_output = self.embedding_session(query=query, persona=persona, iter=False)
         context_output = self.context_session(embedding_session_outputs=embedding_output)
-        logits = self.head_session(ctx_session_outputs=context_output)
+        logits = self.head_session(ctx_hidden_states=context_output)
         next_token_id = self.next_token_prediction(logits=logits, generated_ids=logits, temperature=temperature)
 
         generated_ids = [next_token_id]
         prev_sequence_length = self.model_params.max_seq_len
 
+        if io_binding:
+            self.iBindingManager = IOBindingManager(inference_session=self.session_mapper["CONTEXT_ITER"])
+            _, _, hidden_dimensions = context_output.shape
+            _, num_heads, _, head_dimensions = self.kv_cache.get("past_keys_0").shape
+
+            # Initial Buffer allocation
+            hidden_state_dimensions = (1,1,hidden_dimensions)
+            kv_cache_dimensions = (1, num_heads, prev_sequence_length, head_dimensions)
+            self.output_hidden_states_buffer = self.iBindingManager.buffer_preallocation_hidden_states(buffer_shape=hidden_state_dimensions)
+
+            self.present_key_buffer = self.iBindingManager.buffer_preallocation_kv(buffer_shape=kv_cache_dimensions,
+                                                                         num_layers=ModelParameters.num_layers,
+                                                                         keys_or_values="keys")
+            self.present_value_buffer = self.iBindingManager.buffer_preallocation_kv(buffer_shape=kv_cache_dimensions,
+                                                                           num_layers=ModelParameters.num_layers,
+                                                                           keys_or_values="values")
         print("\nInitial Query:\n", query)
         print("Generated:")
 
@@ -185,8 +228,9 @@ class DeepSeekModelInference():
 
             embedding_output = self.embedding_session(query=input_ids)
             iter_outputs = self.context_itr_session(embedding_session_output=embedding_output,
-                                                    previous_sequence_length=prev_sequence_length)
-            logits = self.head_session(ctx_session_outputs=iter_outputs)
+                                                    previous_sequence_length=prev_sequence_length,
+                                                    io_binding=io_binding)
+            logits = self.head_session(ctx_hidden_states=iter_outputs)
             next_token_id = self.next_token_prediction(logits=logits, generated_ids=generated_ids,
                                                        temperature=temperature, top_k=top_k,
                                                        repetition_penalty=repetition_penalty)
@@ -329,7 +373,89 @@ class DeepSeekModelInference():
 
             case _:
                 pass
+
+class IOBindingManager():
+    def __init__(self, inference_session: ort.InferenceSession):
+        self.session = inference_session
+        self.outputs = self.session.get_outputs()
+        self.layer_names = [name for name in self.outputs]
+        self.io_binding = self.session.io_binding()
+
+    def buffer_preallocation_hidden_states(self,
+                                           buffer_shape: tuple,
+                                           dtype: np.dtype=np.float32,
+                                        ) -> np.array:
+        return np.empty(buffer_shape, dtype=dtype)
+
+    def buffer_preallocation_kv(self, 
+                                buffer_shape: Tuple,
+                                num_layers: int,
+                                keys_or_values: str,
+                                dtype: np.dtype=np.float32
+                                ) -> Dict[str,str]:
+        return {f"past_{keys_or_values}_{layer}": np.empty(buffer_shape, dtype=dtype) \
+                for layer in range(num_layers)}   
+    
+    def buffer_reallocation_kv(self, 
+                               updated_buffer_shape: Tuple,
+                               num_layers: int,
+                               present_key_buffer: Dict[str,str],
+                               present_value_buffer: Dict[str,str],
+                               dtype: np.dtype=np.float32
+                               ) -> None:
+        for layer in range(num_layers):
+            key_name = self.layer_names[1 + layer * 2]
+            value_name = self.layer_names[1 + layer * 2 + 1]
+
+            key_buffer = np.empty(updated_buffer_shape, dtype=dtype)
+            value_buffer = np.empty(updated_buffer_shape, dtype=dtype)
+
+            present_key_buffer[f"past_keys_{layer}"] = key_buffer.copy()
+            present_value_buffer[f"past_values_{layer}"] = value_buffer.copy()
+
+            self.bind_output(name=key_name,
+                              device_type="cpu",
+                              device_id=0,
+                              element_type=key_buffer.dtype,
+                              shape=key_buffer.shape,
+                              buffer_ptr=key_buffer.ctypes.data)
+            self.bind_output(name=value_buffer,
+                              device_type="cpu",
+                              device_id=0,
+                              element_type=value_buffer.dtype,
+                              shape=value_buffer.shape,
+                              buffer_ptr=value_buffer.ctypes.data)
+
+    def bind_output(self,
+                 name: str,
+                 buffer: np.array,
+                 device_type: str="cpu",
+                 device_id: int=0
+                 ) -> None:
+        self.io_binding.bind_output(
+            name=name,
+            device_type=device_type,
+            device_id=device_id,
+            element_type=buffer.dtype,
+            shape=buffer.shape,
+            buffer_ptr=buffer.ctypes.data)
         
+    def bind_input(self,
+                    name: str,
+                    buffer: np.array,
+                    device_id: int=0,
+                    device_type: str="cpu",
+                    ) -> None:
+        
+        self.io_binding.bind_input(name,
+                                   device_type=device_type,
+                                   element_type=buffer.dtype,
+                                   shape=buffer.shape,
+                                   buffer_ptr=buffer.ctypes.data,
+                                   device_id=device_id
+                                   ) 
+
+
 
 if __name__=="__main__":
     dummy_dict = {"EMBEDDING":"EMBEDDING_DUMMY",

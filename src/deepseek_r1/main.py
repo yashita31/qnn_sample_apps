@@ -99,7 +99,8 @@ def main():
                          temperature=args.temperature,
                          persona=args.persona,
                          max_tokens=args.max_tokens,
-                         repetition_penalty=args.repetition_penalty)
+                         repetition_penalty=args.repetition_penalty,
+                         io_binding=False)
     end = time.time()
     elapsed = end - start
     tps = np.round((args.max_tokens / elapsed),2)
