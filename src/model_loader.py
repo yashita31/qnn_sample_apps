@@ -159,7 +159,8 @@ class ModelLoader:
             "soc_model": soc_model,
             "profiling_level": profiling_level,
             "profiling_file_path": str(self.model_subdirectory_path) if profiling_file_path == None else str(profiling_file_path),
-            "htp_graph_finalization_optimization_mode": htp_graph_finalization_optimization_mode
+            "htp_graph_finalization_optimization_mode": htp_graph_finalization_optimization_mode,
+            "enable_htp_shared_memory_allocator": 1
         }
 
         session = ort.InferenceSession(model_path, 

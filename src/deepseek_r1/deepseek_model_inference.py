@@ -9,6 +9,7 @@ todo:
 import onnxruntime as ort
 import numpy as np
 import logging
+import time
 
 from enum import IntEnum, Enum
 from tokenizers import Tokenizer
@@ -128,6 +129,7 @@ class DeepSeekModelInference():
             "past_seq_len": np.array([[previous_sequence_length]], dtype=np.int32),
             "total_seq_len": np.array([previous_sequence_length+1], dtype=np.int32)
             }
+        
         iter_inputs = {
             "input_hidden_states": embedding_session_output,
             **self.kv_cache,
@@ -141,25 +143,36 @@ class DeepSeekModelInference():
                     name=name,
                     buffer=value
                 )
+           
             self.iBindingManager.bind_output(
                 name = self.iBindingManager.layer_names[0],
                 buffer = self.output_hidden_states_buffer # need to add checks for all used buffers, do it at the top and abstract out
             )
-
-            kv_shape_update = (1, self.model_params.num_heads, previous_sequence_length+1, self.model_params.attn_head_size)
-
+            
+            kv_shape_update = (1, self.model_params.num_key_value_heads, previous_sequence_length+1, self.model_params.attn_head_size)
+            
             self.iBindingManager.buffer_reallocation_kv(
                 updated_buffer_shape=kv_shape_update,
                 num_layers=self.model_params.num_layers,
                 present_key_buffer=self.present_key_buffer,
                 present_value_buffer=self.present_value_buffer,
             )
-
+            # start = time.time()
             self.session_mapper.get("CONTEXT_ITER").run_with_iobinding(self.iBindingManager.io_binding)
+            # duration = time.time() - start
+            # print("Time per iteration (IOBinding):", duration)
             hidden_states = self.output_hidden_states_buffer
+            self.kv_cache = {
+                **self.present_key_buffer,
+                **self.present_value_buffer
+            }
+            
 
         else:
+            # start = time.time()
             iter_outputs = self.session_mapper["CONTEXT_ITER"].run(None, iter_inputs)
+            # duration = time.time() - start
+            # print("Time per iteration (No IOBinding):", duration)
             self.kv_cache = self.kv_cache_update(ctx_outputs=iter_outputs) 
             hidden_states = iter_outputs[0]
         # self.verbosity_context_iter()
@@ -221,11 +234,14 @@ class DeepSeekModelInference():
                                                                            keys_or_values="values")
         print("\nInitial Query:\n", query)
         print("Generated:")
+        # for output in self.session_mapper.get("CONTEXT_ITER").get_outputs():
+        #     print(f"{output.name}: shape={output.shape}, type={output.type}")
 
         for _ in range(max_tokens):
+            
             input_ids = np.array([[next_token_id]], dtype=np.int64)
             print(self.tokenizer.decode([next_token_id], skip_special_tokens=True), end="", flush=True)
-
+            
             embedding_output = self.embedding_session(query=input_ids)
             iter_outputs = self.context_itr_session(embedding_session_output=embedding_output,
                                                     previous_sequence_length=prev_sequence_length,
@@ -378,7 +394,7 @@ class IOBindingManager():
     def __init__(self, inference_session: ort.InferenceSession):
         self.session = inference_session
         self.outputs = self.session.get_outputs()
-        self.layer_names = [name for name in self.outputs]
+        self.layer_names = [output.name for output in self.outputs]
         self.io_binding = self.session.io_binding()
 
     def buffer_preallocation_hidden_states(self,
@@ -410,28 +426,28 @@ class IOBindingManager():
             key_buffer = np.empty(updated_buffer_shape, dtype=dtype)
             value_buffer = np.empty(updated_buffer_shape, dtype=dtype)
 
-            present_key_buffer[f"past_keys_{layer}"] = key_buffer.copy()
-            present_value_buffer[f"past_values_{layer}"] = value_buffer.copy()
-
+            present_key_buffer[f"past_keys_{layer}"] = key_buffer
+            present_value_buffer[f"past_values_{layer}"] = value_buffer
+            
             self.bind_output(name=key_name,
+                             buffer=key_buffer,
                               device_type="cpu",
                               device_id=0,
-                              element_type=key_buffer.dtype,
-                              shape=key_buffer.shape,
-                              buffer_ptr=key_buffer.ctypes.data)
-            self.bind_output(name=value_buffer,
+                              )
+            self.bind_output(name=value_name,
+                             buffer=value_buffer,
                               device_type="cpu",
                               device_id=0,
-                              element_type=value_buffer.dtype,
-                              shape=value_buffer.shape,
-                              buffer_ptr=value_buffer.ctypes.data)
-
+                              )
+        # print("Key Shapes:", key_buffer.shape)
+        # print("value Shapes:", value_buffer.shape)
     def bind_output(self,
                  name: str,
                  buffer: np.array,
                  device_type: str="cpu",
                  device_id: int=0
                  ) -> None:
+        
         self.io_binding.bind_output(
             name=name,
             device_type=device_type,

@@ -46,7 +46,7 @@ def main():
     parser.add_argument("--model", 
                         type=str, 
                         default="deepseek_7b",
-                        help="Models: deepseek_7b, deepseek_14b")
+                        help="Models: deepseek_1.5b, deepseek_7b, deepseek_14b")
     parser.add_argument("--processor", 
                         type=str, 
                         default="npu",
@@ -65,7 +65,7 @@ def main():
                         help="Temperature Scaling")
     parser.add_argument("--top_k", 
                         type=int, 
-                        default=5,
+                        default=10,
                         help="Top K")
     parser.add_argument("--repetition_penalty", 
                         type=float, 
@@ -75,16 +75,21 @@ def main():
                         type=int,
                         default=0,
                         help="Verbose levels: 0:None, 1:Basic, 2:Detailed")
+    parser.add_argument("--io_binding",
+                        type=bool,
+                        default=True,
+                        help="Implementing IO Binding")
 
     args = parser.parse_args()
 
     iLoad = ModelLoader(model=args.model, processor=args.processor,
-                        model_type=args.model_type)
+                        model_type=args.model_type,
+                        )
     
     model_subdirectory = iLoad.model_subdirectory_path
 
     graphs = iLoad.graphs
-    model_sessions = {graph_name: iLoad.load_model(graph) for graph_name,graph in graphs.items() if str(graph).endswith(".onnx")}
+    model_sessions = {graph_name: iLoad.load_model(graph,htp_performance_mode="BURST") for graph_name,graph in graphs.items() if str(graph).endswith(".onnx")}
     tokenizer = next((file for file in graphs.values() if file.endswith("tokenizer.json")), None)
     meta_data = graphs["META_DATA"]
 
@@ -100,7 +105,7 @@ def main():
                          persona=args.persona,
                          max_tokens=args.max_tokens,
                          repetition_penalty=args.repetition_penalty,
-                         io_binding=False)
+                         io_binding=args.io_binding)
     end = time.time()
     elapsed = end - start
     tps = np.round((args.max_tokens / elapsed),2)
