@@ -154,13 +154,13 @@ class ModelLoader:
         dll_path = self._get_dll_path()
 
         qnn_provider_options = {
-            "backend_path": dll_path, #,str(self.onnx_root/"casi"/"QnnHtp.dll")
+            "backend_path": dll_path, 
             "htp_performance": htp_performance_mode,
             "soc_model": soc_model,
             "profiling_level": profiling_level,
             "profiling_file_path": str(self.model_subdirectory_path) if profiling_file_path == None else str(profiling_file_path),
             "htp_graph_finalization_optimization_mode": htp_graph_finalization_optimization_mode,
-            "enable_htp_shared_memory_allocator": 1
+            "enable_htp_shared_memory_allocator": 1,
         }
 
         session = ort.InferenceSession(model_path, 
