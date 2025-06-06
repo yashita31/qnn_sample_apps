@@ -279,7 +279,7 @@ class DeepSeekModelInference():
         
         seq_lengths = {
             "past_seq_len": np.array(output_dimensionality-1, dtype=np.int32).reshape(1,1),
-            "total_seq_len": np.array([past_shape[2]])
+            "total_seq_len": np.array([past_shape[2]], dtype=np.int32)
         }
         padded_embedding_outputs = self.input_padding(embedding_output=embedding_output)
 
