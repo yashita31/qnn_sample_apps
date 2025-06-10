@@ -28,6 +28,10 @@ Supported features:
 #### General Requirements
 - Python (version 3.11.+)
    - If targeting Hexagon ensure you install ARM64 compatible Python version
+- C and C++ support in Visual Studio
+   - [Installation Instructions](https://learn.microsoft.com/en-us/cpp/build/vscpp-step-0-installation?view=msvc-170)
+- Rust Support
+   - [Installation Instructions](https://rustup.rs/)
 #### 1. Clone the Repository
 ```
 >> git clone https://github.com/DerrickJ1612/qnn_sample_apps.git
@@ -36,7 +40,7 @@ Supported features:
 ```
 >> python -m venv venv
 >> venv\Scripts\activate.ps1 # Linux: >> source venv/bin/activate
->> pip install -r requirements.txt
+>> pip install -r \src\<App Name>\requirements.txt # Ex: pip install -r \src\deepseek_r1\requirements.txt
 ```
 #### 3. Download Models
 | Model Name  | Description              | Download Source                                                                                               |
