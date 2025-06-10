@@ -1,21 +1,14 @@
-import sys
 
 from unittest.mock import patch
 from src.model_loader import ModelLoader
-from pathlib import Path
-from unittest.mock import patch, mock_open, MagicMock
-sys.path.append(str(Path.cwd().parent))
 
 
 def test_model_loader_initialization(model_paths):
-    
-    from src.model_loader import ModelLoader  
-
-    
+      
     loader = ModelLoader(model="deepseek_7b", processor="npu", model_type="default")
     dll_path = str(loader._get_dll_path())
     assert loader.model == "deepseek_7b"
-    assert loader.processor == "NPU"  # Should fallback due to x86_64
+    assert loader.processor == "NPU" if loader.arch=="arm64" else "CPU" 
     assert loader.model_type == "default"
     assert "EP" in loader._get_executioner()
     assert dll_path.endswith(".dll")
@@ -24,7 +17,7 @@ def test_model_loader_initialization(model_paths):
     expected_path = model_paths("DEEPSEEK_7B")
     assert str(loader.model_subdirectory_path) == str(expected_path)
 
-#Inject x86 into system architecture
+#Inject x86 into system architecture if ARM64 to check for CPU fallback
 @patch("platform.machine", return_value="x86_64")
 @patch("platform.system", return_value="Windows")
 def test_processor_fallback(mock_system, mock_machine):

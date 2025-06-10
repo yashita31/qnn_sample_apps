@@ -221,7 +221,8 @@ class DeepSeekModelInference():
 
         logits = self.session_mapper["HEAD"].run(None, {"output_hidden_states": ctx_hidden_states})[0]
 
-        # self.verbosity_head()
+        self.verbosity_head(logits=logits,
+                            verbose=self.verbose)
         
         return logits
     
@@ -416,7 +417,6 @@ class DeepSeekModelInference():
                 break
 
         final_response = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
-        # logger.info(final_response)
 
         return final_response
     
@@ -426,7 +426,7 @@ class DeepSeekModelInference():
         return present_kv  
           
     def _build_persona(self, role: InferencePersona) -> str:
-            return f"You are a {role.value}.\n"#f"You are a {role.value}.\n"
+            return f"You are a {role.value}.\n"
 
     def _cache_init(self, embedding_output: np.array) -> Dict[str,np.array]:
         empty_kv = defaultdict()
@@ -482,8 +482,12 @@ class DeepSeekModelInference():
         return padded_embedding
     
 
-    def verbosity_head():
-        pass
+    def verbosity_head(self, logits: np.array,
+                       verbose: int=VerbosityLevel.NONE):
+        match verbose:
+            case 1 | 2:
+                logger.info("\n.....LM Head")
+                logger.info(f".....Logits Shape: {logits.shape}")
 
     def verbosity_context(self, init_prompt_inputs: dict,
                           ctx_outputs: np.array,
@@ -493,9 +497,9 @@ class DeepSeekModelInference():
                 num_layers_verified = (len([layer for layer in init_prompt_inputs.keys() if "past" in layer])-1)//2
                 cache_key = next((layer for layer in init_prompt_inputs.keys() if "past_keys" in layer))
                 cache_shape = init_prompt_inputs[cache_key].shape
-                print("\n.....INITIALIZATION")
-                print(f".....Calculated Layers from KV Cache: {num_layers_verified}")
-                print(f".....KV Cache Shape: {cache_shape}")
+                logger.info("\n.....INITIALIZATION")
+                logger.info(f".....Calculated Layers from KV Cache: {num_layers_verified}")
+                logger.info(f".....KV Cache Shape: {cache_shape}")
             case _:
                 pass
 
@@ -506,15 +510,15 @@ class DeepSeekModelInference():
         
         match verbose:
             case 1:
-                print(f"\n.....EMBEDDING_SESSION")
-                print(f".....Token Count: {token_size}")
+                logger.info(f"\n.....EMBEDDING_SESSION")
+                logger.info(f".....Token Count: {token_size}")
 
             case 2:
-                print(f"\n.....EMBEDDING_SESSION")
-                print(f".....Token Count: {token_size}")
-                print(f".....Prompt:\n{self.tokenizer.decode(token_id.flatten())}", end="")
-                print(f".....Token ID: {token_id.flatten()}")
-                print(f".....Embedding Output: {embed_output}")
+                logger.info(f"\n.....EMBEDDING_SESSION")
+                logger.info(f".....Token Count: {token_size}")
+                logger.info(f".....Prompt:\n{self.tokenizer.decode(token_id.flatten())}", end="")
+                logger.info(f".....Token ID: {token_id.flatten()}")
+                logger.info(f".....Embedding Output: {embed_output}")
 
             case _:
                 pass 
@@ -525,30 +529,30 @@ class DeepSeekModelInference():
         
         match verbose:
             case 1:
-                print(f"\n.....INIT")
+                logger.info(f"\n.....INIT")
                 keys = ", ".join(list(self.session_mapper.keys()))
-                print(f".....Model: {model_name}") #logger.info()
-                print(f".....Graphs: {keys}")
-                print(f".....Tokenizer Path: {tokenizer_path}")
+                logger.info(f".....Model: {model_name}") #logger.info()
+                logger.info(f".....Graphs: {keys}")
+                logger.info(f".....Tokenizer Path: {tokenizer_path}")
 
             case 2:
-                print(f"\n.....INIT")
-                print(f".....Model: {model_name}")
+                logger.info(f"\n.....INIT")
+                logger.info(f".....Model: {model_name}")
                 for graph_name, graph_session in self.session_mapper.items():
                     session_inputs = graph_session.get_inputs()
                     session_outputs = graph_session.get_outputs()
                     input_head = session_inputs[0]
                     output_head = session_outputs[0]
-                    print(f".....Graph Name: {graph_name}")
-                    print(f".....Expected Input Name: {input_head.name}")
-                    print(f".....Expected Input Shape: {input_head.shape}")
-                    print(f".....Expected Input Type: {input_head.type}")
-                    print("")
-                    print(f".....Expected Output Name: {output_head.name}")
-                    print(f".....Expected Output Shape: {output_head.shape}")
-                    print(f".....Expected Output Type: {output_head.type}")
-                    print("."*50)
-                print(f".....Tokenizer Path: {tokenizer_path}")
+                    logger.info(f".....Graph Name: {graph_name}")
+                    logger.info(f".....Expected Input Name: {input_head.name}")
+                    logger.info(f".....Expected Input Shape: {input_head.shape}")
+                    logger.info(f".....Expected Input Type: {input_head.type}")
+                    logger.info("")
+                    logger.info(f".....Expected Output Name: {output_head.name}")
+                    logger.info(f".....Expected Output Shape: {output_head.shape}")
+                    logger.info(f".....Expected Output Type: {output_head.type}")
+                    logger.info("."*50)
+                logger.info(f".....Tokenizer Path: {tokenizer_path}")
 
             case _:
                 pass
@@ -602,8 +606,7 @@ class IOBindingManager():
                               device_type="cpu",
                               device_id=0,
                               )
-        # print("Key Shapes:", key_buffer.shape)
-        # print("value Shapes:", value_buffer.shape)
+        
     def bind_output(self,
                  name: str,
                  buffer: np.array,
