@@ -89,7 +89,7 @@ def main():
     model_subdirectory = iLoad.model_subdirectory_path
 
     graphs = iLoad.graphs
-    model_sessions = {graph_name: iLoad.load_model(graph,htp_performance_mode="BURST") for graph_name,graph in graphs.items() if str(graph).endswith(".onnx")}
+    model_sessions = {graph_name: iLoad.load_model(graph,htp_performance_mode="sustained_high_performance") for graph_name,graph in graphs.items() if str(graph).endswith(".onnx")}
     tokenizer = next((file for file in graphs.values() if file.endswith("tokenizer.json")), None)
     meta_data = graphs["META_DATA"]
 

@@ -396,7 +396,8 @@ class DeepSeekModelInference():
                                                                            keys_or_values="values")
         logger.info(f"\nInitial Query:\n{query}")
         logger.info("\nGenerated:\n")
-
+        
+        self.verbose = VerbosityLevel.NONE
         for _ in range(max_tokens):
             
             input_ids = np.array([[next_token_id]], dtype=np.int64)
@@ -421,14 +422,59 @@ class DeepSeekModelInference():
         return final_response
     
     def kv_cache_update(self, ctx_outputs):
+        """
+        Updates the key-value (KV) cache based on the output of a transformer model context pass.
+
+        This method extracts past key and value tensors for each transformer layer from the
+        context output and stores them in a dictionary with appropriate keys.
+
+        Args:
+            ctx_outputs (List[np.ndarray]): The list of output tensors returned by the context session,
+                where index 0 is the hidden state and subsequent tensors are interleaved keys and values.
+
+        Returns:
+            Dict[str, np.ndarray]: A dictionary mapping each layer's past keys and values, e.g.,
+                {
+                    "past_keys_0": ...,
+                    "past_values_0": ...,
+                    ...
+                }
+        """    
         present_kv = {f"past_keys_{layer}": ctx_outputs[1 + layer * 2] for layer in range(self.model_params.num_layers)}
         present_kv.update({f"past_values_{layer}": ctx_outputs[1 + layer * 2 + 1] for layer in range(self.model_params.num_layers)})
         return present_kv  
           
     def _build_persona(self, role: InferencePersona) -> str:
-            return f"You are a {role.value}.\n"
+        """
+        Builds a persona prompt prefix string based on the selected persona role.
+
+        This is used to prepend personality or behavioral instructions to the user query
+        during inference to simulate different styles of AI assistant.
+
+        Args:
+            role (InferencePersona): An enum representing the desired assistant persona.
+
+        Returns:
+            str: A formatted instruction string to prefix the user prompt.
+        """
+        return f"You are a {role.value}.\n"
 
     def _cache_init(self, embedding_output: np.array) -> Dict[str,np.array]:
+        """
+        Initializes an empty KV cache and prepares inputs for the first transformer context pass.
+
+        This method prepares the required input format for the context graph, including:
+        - zeroed past key/value caches for each transformer layer,
+        - sequence length metadata,
+        - and padded input embeddings to match the model's sequence expectations.
+
+        Args:
+            embedding_output (np.array): The embedding output array from the embedding session.
+
+        Returns:
+            Dict[str, np.array]: A dictionary containing all inputs required for the initial context pass,
+                including "past_keys_X", "past_values_X", "input_hidden_states", and sequence length metadata.
+        """
         empty_kv = defaultdict()
         output_dimensionality = embedding_output.shape[1]
         past_shape = (self.model_params.batch_size,
@@ -455,11 +501,33 @@ class DeepSeekModelInference():
         return init_prompt_inputs
     
     def _softmax_numpy(self, x: np.array, temparature: float=1.0) -> np.array:
+        """
+        Computes a temperature-scaled softmax over the input array.
+
+        Args:
+            x (np.array): Input logits.
+            temparature (float, optional): Scaling factor to control randomness. Lower values make distribution sharper.
+
+        Returns:
+            np.array: Softmax-normalized probability distribution.
+        """
         x = x- np.max(x)
         x = x/temparature
         return np.exp(x)/np.sum(np.exp(x), axis=-1)
     
     def _top_k_probas(self, probas: np.array, k: int=5) -> np.array:
+        """
+        Selects the top-k probabilities and normalizes them.
+
+        Args:
+            probas (np.array): A 1D array of probabilities.
+            k (int, optional): Number of top elements to retain.
+
+        Returns:
+            Tuple[np.array, np.array]: A tuple containing:
+                - top_indices_sorted (np.array): Indices of top-k probabilities.
+                - top_k_probas (np.array): Normalized top-k probability values.
+        """
         probas = probas.copy()
         probas /= np.sum(probas)
         top_indices_sorted = np.argsort(-probas)[:k]
@@ -468,12 +536,35 @@ class DeepSeekModelInference():
         return top_indices_sorted, top_k_probas
     
     def apply_repetition_penalty(self, logits: np.array, generated_ids: list, penalty: float=1.1):
+        """
+        Applies a repetition penalty to previously generated tokens.
+
+        This discourages the model from repeating tokens that have already been generated.
+
+        Args:
+            logits (np.array): The raw logits for the next token.
+            generated_ids (list): List of token IDs that have already been generated.
+            penalty (float, optional): The penalty factor to apply (must be >= 1.0).
+
+        Returns:
+            np.array: Logits modified to penalize repeated tokens.
+        """
         for token_id in set(generated_ids):
             logits[token_id] /= penalty
         return logits
 
 
     def input_padding(self, embedding_output, padding_id: int=151643) -> np.array:
+        """
+        Pads the embedding output to match the model's maximum sequence length.
+
+        Args:
+            embedding_output (np.array): The embedding tensor of shape (batch_size, seq_len, embed_dim).
+            padding_id (int, optional): Token ID to use for padding (usually a reserved token).
+
+        Returns:
+            np.array: A tensor padded along the sequence dimension to (batch_size, max_seq_len, embed_dim).
+        """
         batch_size, seq_len, embed_dim = embedding_output.shape
         padded_embedding = np.full((batch_size, self.model_params.max_seq_len, embed_dim),
                                    padding_id,
@@ -486,6 +577,7 @@ class DeepSeekModelInference():
                        verbose: int=VerbosityLevel.NONE):
         match verbose:
             case 1 | 2:
+                
                 logger.info("\n.....LM Head")
                 logger.info(f".....Logits Shape: {logits.shape}")
 
@@ -516,7 +608,7 @@ class DeepSeekModelInference():
             case 2:
                 logger.info(f"\n.....EMBEDDING_SESSION")
                 logger.info(f".....Token Count: {token_size}")
-                logger.info(f".....Prompt:\n{self.tokenizer.decode(token_id.flatten())}", end="")
+                logger.info(f".....Prompt:\n{self.tokenizer.decode(token_id.flatten())}")
                 logger.info(f".....Token ID: {token_id.flatten()}")
                 logger.info(f".....Embedding Output: {embed_output}")
 

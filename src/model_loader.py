@@ -151,7 +151,7 @@ class ModelLoader:
 
         Args:
             onnx_graph (ort): The filename of the ONNX model (e.g., "model.onnx").
-            htp_performance_mode (str): HTP performance mode (e.g., "burst", "balanced").
+            htp_performance_mode (str): HTP performance mode (e.g., "burst", "balanced","sustained_high_performance").
             soc_model (str): Target SoC model identifier (e.g., "60" for Snapdragon SoC 60).
             profiling_level (str): Profiling verbosity level (e.g., "off", "basic", "detailed").
             profiling_file_path (str, optional): Path to write profiling results. Defaults to model directory.
@@ -177,6 +177,8 @@ class ModelLoader:
             "profiling_file_path": str(self.model_subdirectory_path) if profiling_file_path == None else str(profiling_file_path),
             "htp_graph_finalization_optimization_mode": htp_graph_finalization_optimization_mode,
             "enable_htp_shared_memory_allocator": 1,
+            "qnn_context_priority": "high",
+            "offload_graph_io_quantization": 1
         }
 
         session = ort.InferenceSession(model_path, 
