@@ -369,6 +369,12 @@ class DeepSeekModelInference():
         Raises:
             ValueError: If IO binding is enabled but required buffers or manager are not initialized.
         """
+        # Reset internal buffers and state
+        self.kv_cache = {}
+        self.present_key_buffer = {}
+        self.present_value_buffer = {}
+        self.output_hidden_states_buffer = None
+
         # Iter set to false because this grabs the initial embeddings
         embedding_output = self.embedding_session(query=query, persona=persona, iter=False)
         context_output = self.context_session(embedding_session_outputs=embedding_output)
@@ -396,7 +402,7 @@ class DeepSeekModelInference():
                                                                            keys_or_values="values")
         logger.info(f"\nInitial Query:\n{query}")
         logger.info("\nGenerated:\n")
-        
+
         self.verbose = VerbosityLevel.NONE
         for _ in range(max_tokens):
             
@@ -418,6 +424,9 @@ class DeepSeekModelInference():
                 break
 
         final_response = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
+
+        if io_binding:
+            self.iBindingManager.clear_all_bindings()
 
         return final_response
     
@@ -728,6 +737,10 @@ class IOBindingManager():
                                    buffer_ptr=buffer.ctypes.data,
                                    device_id=device_id
                                    ) 
+        
+    def clear_all_bindings(self):
+        self.io_binding.clear_binding_inputs()
+        self.io_binding.clear_binding_outputs()
 
 
 
