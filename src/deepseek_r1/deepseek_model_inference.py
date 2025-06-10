@@ -45,7 +45,37 @@ class ModelParameters:
 
 logger = logging.getLogger(__name__)
 
+logging.basicConfig(
+    level=logging.INFO,  # Or DEBUG in dev
+    format='[%(levelname)s] %(asctime)s - %(message)s',
+    datefmt='%H:%M:%S'
+)
+
 class DeepSeekModelInference():
+    """
+    A class that wraps ONNX inference for DeepSeek language models, including tokenizer initialization
+    and model metadata management.
+
+    This class handles loading and managing multiple ONNX Runtime sessions (e.g., embedding, context, head),
+    initializes the tokenizer, stores model metadata, and sets up verbosity for debugging or inspection.
+
+    Args:
+        model_sessions (Dict[str, ort.InferenceSession]): A mapping of session names (e.g., 'EMBEDDING', 'CONTEXT') 
+            to ONNX Runtime InferenceSession objects.
+        tokenizer (str): Filename of the tokenizer JSON file located within the model subdirectory.
+        model_subdirectory (Path): Path to the model directory containing ONNX files and tokenizer.
+        model_meta (dict): A dictionary containing model metadata (e.g., number of layers, heads, etc.).
+        verbose (VerbosityLevel, optional): Level of verbosity to control debug output. Defaults to VerbosityLevel.NONE.
+
+    Attributes:
+        session_mapper (Dict[str, ort.InferenceSession]): Stores mapped inference sessions.
+        tokenizer_path (Path): Full path to the tokenizer file.
+        tokenizer (Tokenizer): Initialized tokenizer object.
+        model_params (ModelParameters): Parsed and structured model metadata.
+        softmax (Callable): Softmax function with temperature scaling for logits.
+        verbose (VerbosityLevel): Current verbosity level.
+        root_dir (Path): Root working directory at runtime.
+    """
 
     def __init__(self, model_sessions: Dict[str,ort.InferenceSession], 
                  tokenizer: str,
@@ -64,6 +94,23 @@ class DeepSeekModelInference():
         self.verbosity_init(self.verbose)
 
     def query(self, query: str, persona: Optional[str]=None) -> str:
+        """
+        Constructs a formatted query prompt for the model, optionally including a predefined persona.
+
+        This method builds a structured prompt with user and assistant tags. If a valid persona name is provided,
+        it injects persona-specific context using the internal persona builder. If the persona is invalid,
+        a warning is logged and the query proceeds without persona context.
+
+        Args:
+            query (str): The user's input text or question.
+            persona (Optional[str]): Optional name of the persona to apply. Must match a value in InferencePersona.
+
+        Returns:
+            str: A formatted prompt string ready to be passed to the model for inference.
+
+        Raises:
+            None: Invalid personas are handled gracefully with a warning log.
+        """
         user = "<｜User｜>\n"
         assistant = "\n<｜Assistant｜><think>\n"
         query_build = user
@@ -75,16 +122,46 @@ class DeepSeekModelInference():
                 query_build += persona_context
             except KeyError:
                 available_personas = ", ".join([role.name for role in InferencePersona])
-                print(f".....Available Personas: {available_personas}")
+                logger.warning(f".....Available Personas: {available_personas}")
                        
         query_build += query
         query_build += assistant
         return query_build
 
     def tokenize(self, prompt: str) -> np.array:
+        """
+        Tokenizes the input prompt using the initialized tokenizer.
+
+        This method encodes the prompt into a NumPy array of token IDs, 
+        formatted for model input.
+
+        Args:
+            prompt (str): The raw input text to tokenize.
+
+        Returns:
+            np.array: A 2D NumPy array of shape (1, sequence_length) with dtype int64.
+        """
         return np.array([self.tokenizer.encode(prompt).ids], dtype=np.int64)
     
     def embedding_session(self, query: str, persona: Optional[str]=None, iter: bool=True) -> np.array:
+        """
+        Runs the embedding session to generate token embeddings from a prompt or token IDs.
+
+        If `iter` is False, the method assumes a raw text query and optional persona, 
+        constructs the prompt, tokenizes it, and runs the embedding ONNX session.
+        If `iter` is True, the method assumes `query` is already a token ID array (used in autoregressive loops).
+
+        This method also updates model parameters for sequence length and hidden size based on the output tensor,
+        and handles verbosity during inference.
+
+        Args:
+            query (str): The input query string or pre-tokenized token ID array.
+            persona (Optional[str]): Optional persona to prepend to the prompt.
+            iter (bool): Whether to treat the input as tokenized (`True`) or raw text (`False`).
+
+        Returns:
+            np.array: The output from the embedding ONNX session, typically a 3D array of embeddings.
+        """
         if not iter:
             prompt = self.query(query, persona)
             token_ids = self.tokenize(prompt)
@@ -105,6 +182,19 @@ class DeepSeekModelInference():
         return embedding_output
     
     def context_session(self, embedding_session_outputs: np.array) -> np.array:
+        """
+        Runs the context session to generate hidden states and update the KV cache.
+
+        This method initializes the model's key-value cache using outputs from the embedding session,
+        executes the context ONNX model, and extracts the hidden states for subsequent layers.
+        It also updates internal cache state and optionally logs context-related verbosity details.
+
+        Args:
+            embedding_session_outputs (np.array): The output tensor from the embedding session.
+
+        Returns:
+            np.array: The context hidden states, typically the first output from the context session.
+        """
         init_prompts = self._cache_init(embedding_session_outputs)
         ctx_outputs = self.session_mapper["CONTEXT"].run(None, init_prompts)
         self.kv_cache = self.kv_cache_update(ctx_outputs=ctx_outputs)
@@ -115,6 +205,19 @@ class DeepSeekModelInference():
         return hidden_states
 
     def head_session(self, ctx_hidden_states: np.array) -> np.array:
+        """
+        Runs the head session to produce final logits from hidden states.
+
+        This method passes the output hidden states from the context session into the head ONNX model
+        and returns the resulting logits, which represent model predictions over the vocabulary.
+
+        Args:
+            ctx_hidden_states (np.array): Hidden state tensor from the context session.
+                                        
+
+        Returns:
+            np.array: The logits tensor, typically of shape.
+        """
 
         logits = self.session_mapper["HEAD"].run(None, {"output_hidden_states": ctx_hidden_states})[0]
 
@@ -125,6 +228,24 @@ class DeepSeekModelInference():
     def context_itr_session(self, embedding_session_output: np.array,
                             previous_sequence_length: int=64,
                             io_binding=True):
+        """
+        Executes a single autoregressive iteration using either IO binding or standard ONNX inference.
+
+        This method performs one step of the iterative decoding process by feeding the current
+        embedding output along with past key/value caches and sequence lengths into the context_iter ONNX model.
+        Optionally, it uses ONNX Runtime IO binding for improved performance on supported hardware.
+
+        Args:
+            embedding_session_output (np.array): Hidden state tensor from the previous layer or token.
+            previous_sequence_length (int): Length of tokens already processed; used to compute attention.
+            io_binding (bool): If True, uses IO binding for more efficient inference. Otherwise, defaults to standard run.
+
+        Returns:
+            np.array: Updated hidden states output from the context iteration.
+        
+        Raises:
+            ValueError: If `io_binding` is enabled but `iBindingManager` is not initialized.
+        """
         seq_lengths = {
             "past_seq_len": np.array([[previous_sequence_length]], dtype=np.int32),
             "total_seq_len": np.array([previous_sequence_length+1], dtype=np.int32)
@@ -183,6 +304,24 @@ class DeepSeekModelInference():
     def next_token_prediction(self, logits: list, generated_ids: list,
                               temperature: float=1, top_k: Optional[int]=None,
                               repetition_penalty: Optional[float]=None):
+        """
+        Samples the next token from the output logits using temperature scaling, top-k filtering,
+        and optional repetition penalty.
+
+        This method extracts the logits for the last position, applies optional repetition penalties,
+        normalizes with softmax, and samples from the distribution. It supports both unrestricted
+        sampling and top-k restricted sampling.
+
+        Args:
+            logits (list): Logits array of shape (1, seq_len, vocab_size) from the model head.
+            generated_ids (list): List of token IDs generated so far (used for repetition penalty).
+            temperature (float): Softmax temperature to control randomness (lower = more deterministic).
+            top_k (Optional[int]): If provided, restricts sampling to the top-k highest probability tokens.
+            repetition_penalty (Optional[float]): If provided, penalizes previously generated tokens.
+
+        Returns:
+            int: The ID of the next predicted token.
+        """
         last_logit = logits[0,-1]
         if repetition_penalty:
             last_logit = self.apply_repetition_penalty(logits=last_logit, generated_ids=generated_ids, penalty=repetition_penalty)
@@ -205,8 +344,30 @@ class DeepSeekModelInference():
                       max_tokens: int=100,
                       repetition_penalty: float=1.1,
                       io_binding: bool=True
-                      ) -> None:
-        
+                      ) -> List[str]:
+        """
+        Runs end-to-end autoregressive inference using a multi-stage ONNX model pipeline.
+
+        This method performs token generation starting from the input query. It initializes the
+        embedding and context layers, then iteratively generates tokens using the context iteration
+        model (`CONTEXT_ITER`) and head model. Supports ONNX Runtime IOBinding for performance.
+
+        Args:
+            query (str): Initial prompt from the user.
+            top_k (int): Limits token sampling to top-k most probable choices.
+            temperature (float): Sampling temperature; higher values increase randomness.
+            persona (Optional[str]): Optional persona name to influence model behavior.
+            max_tokens (int): Maximum number of tokens to generate.
+            repetition_penalty (float): Penalizes repetition by adjusting logits for previously seen tokens.
+            io_binding (bool): If True, uses preallocated buffers and ONNX IOBinding for inference.
+
+        Returns:
+            List[int]: A list of generated token IDs, including the first token and any subsequent tokens until
+                    either `<|end_of_sentence|>` is reached or `max_tokens` is generated.
+
+        Raises:
+            ValueError: If IO binding is enabled but required buffers or manager are not initialized.
+        """
         # Iter set to false because this grabs the initial embeddings
         embedding_output = self.embedding_session(query=query, persona=persona, iter=False)
         context_output = self.context_session(embedding_session_outputs=embedding_output)
@@ -232,10 +393,8 @@ class DeepSeekModelInference():
             self.present_value_buffer = self.iBindingManager.buffer_preallocation_kv(buffer_shape=kv_cache_dimensions,
                                                                            num_layers=ModelParameters.num_layers,
                                                                            keys_or_values="values")
-        print("\nInitial Query:\n", query)
-        print("Generated:")
-        # for output in self.session_mapper.get("CONTEXT_ITER").get_outputs():
-        #     print(f"{output.name}: shape={output.shape}, type={output.type}")
+        logger.info(f"\nInitial Query:\n{query}")
+        logger.info("\nGenerated:\n")
 
         for _ in range(max_tokens):
             
@@ -256,14 +415,18 @@ class DeepSeekModelInference():
             if next_token_id == self.tokenizer.token_to_id("< | end_of_sentence | >"):
                 break
 
+        final_response = self.tokenizer.decode(generated_ids, skip_special_tokens=True)
+        # logger.info(final_response)
 
+        return final_response
+    
     def kv_cache_update(self, ctx_outputs):
         present_kv = {f"past_keys_{layer}": ctx_outputs[1 + layer * 2] for layer in range(self.model_params.num_layers)}
         present_kv.update({f"past_values_{layer}": ctx_outputs[1 + layer * 2 + 1] for layer in range(self.model_params.num_layers)})
         return present_kv  
           
     def _build_persona(self, role: InferencePersona) -> str:
-            return f"From the perspective of a {role.value}.\n"#f"You are a {role.value}.\n"
+            return f"You are a {role.value}.\n"#f"You are a {role.value}.\n"
 
     def _cache_init(self, embedding_output: np.array) -> Dict[str,np.array]:
         empty_kv = defaultdict()
