@@ -13,3 +13,4 @@ notebooks/.ipynb_checkpoints/
 freeze.txt
 notebooks/sample_app_hrnet_ARM64.py
 *profil*csv
+*.data
