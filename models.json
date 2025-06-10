@@ -20,7 +20,7 @@
                             "max_seq_len": 64}
             }
         },
-        "DEEPSEEK_1P5B": {
+        "DEEPSEEK_1.5B": {
             "PATH_SUBDIRECTORY": "qnn-deepseek-r1-distill-qwen-1.5b",
             "DEFAULT":{
                 "EMBEDDING": "deepseek_r1_1_5_embeddings_quant_v2.0.onnx",
