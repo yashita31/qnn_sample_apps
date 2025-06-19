@@ -1,19 +1,19 @@
-# ONNX Runtime Sample Apps
+# ONNX Runtime Sample Apps for Qualcomm Hexagon NPU
 This repository contains sample apps for running ONNX models efficiently using [ONNX Runtime](https://onnxruntime.ai/), specifically targeting Qualcomm Hexagon NPU with [QNN Execution Provider](https://onnxruntime.ai/docs/execution-providers/QNN-ExecutionProvider.html)
 ## Table of Contents
 1. [Available Apps](#available-apps)
-2. [Project Status](#project-status)
-3. [Getting Started](#getting-started)
-4. [Quick Start](#quick-start)
-5. [Contributing](#contributing)
+2. [Getting Started](#getting-started)
+3. [Quick Start](#quick-start)
+4. [Contributing](#contributing)
+5. [Testing](#testing)
 6. [Directory Structure](#directory-structure)
 7. [License](#license)
 
 ## Available Apps
-| App Name               | Model Used | Providers | Quick Start                                                                          | Notebook                                                                                          | Notes |
-|------------------------|------------|-----------|--------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------|-------|
-| 'HRNet Pose Detection' | HRNetPose  | CPU       |[Complete](https://github.com/DerrickJ1612/qnn_sample_apps/tree/main/src/hrnet_pose)  |[Complete](https://github.com/DerrickJ1612/qnn_sample_apps/tree/main/notebooks/pose_detection)     | None  |
-| 'DeepSeek Local'       | DeepSeek   | QNN       |[Complete](https://github.com/DerrickJ1612/qnn_sample_apps/tree/main/src/deepseek_r1) |[Complete](https://github.com/DerrickJ1612/qnn_sample_apps/tree/main/notebooks/reasoning_llm)      | None  |
+| App Name | Model Used | Providers | Quick Start | Notebook | Blog | Video |
+|----------|------------|-----------|-------------|----------|-------|------|
+| HRNet Pose Detection | HRNetPose | CPU | [Complete](#quick-start) | [Complete](./notebooks/pose_detection/) | [Blog](https://www.qualcomm.com/developer/blog/2025/03/enable-pose-detection-snapdragon-x-elite-step-by-step-tutorial) | [Youtube](https://youtu.be/OASSOhlSpfY?si=gNJLRHAxpl4IUflv) |
+| DeepSeek Local | DeepSeek | QNN/CPU | [Complete](#quick-start) | [Complete](./notebooks/llm/) | 🚧 Coming Soon  | 🎬 Coming Soon |
 
 These apps demonstrate end-to-end inference using ONNX Runtime on devices with Hexagon NPUs. Each app includes:
 - Input preprocessing
@@ -50,15 +50,52 @@ Supported features:
 
 ## Quick Start
 
-| App Name               | CLI Command                                 |
-|------------------------|---------------------------------------------|
-| 'HRNet Pose Detection' | ` >> python ./src/hrnet_pose/main.py `      |
-| 'DeepSeek Local'       | ` >> python ./src/deepseek_r1/main.py `     |
+| App Name               | CLI Command                                  |
+|------------------------|----------------------------------------------|
+| 'HRNet Pose Detection' | ` >> python ./src/hrnet_pose/main.py `       |
+| 'DeepSeek Local'       | ` >> python ./src/deepseek_r1/main.py --help` |
 
 ## Contributing
 We welcome contributions to this repository! Please refer to our [contributing guide](CONTRIBUTING.md) for how to contribute.
 
-## Directory Structure
+## Testing
+- All regression tests must pass
+- New features should include appropriate test coverage
+```
+>> cd ./qnn_sample_apps
+>> pytest -vv
+```
 ## License
 This project is licensed under the [MIT](https://github.com/DerrickJ1612/qnn_sample_apps/blob/main/LICENSE.txt)
+
+## Directory Structure
+```
+QNN_SAMPLE_APPS/
+├── models/
+│   ├── cpu-deepseek-r1-distill-qwen-7b/
+│   ├── hrnet_pose/
+│   ├── qnn-deepseek-r1-distill-qwen-1.5b/
+│   ├── qnn-deepseek-r1-distill-qwen-7b/
+│   ├── qnn-deepseek-r1-distill-qwen-14b/
+├── notebooks/
+│   ├── llm/
+│   ├── pose_detection/
+├── scripts/
+├── src/
+│   ├── deepseek_r1/
+│   ├── hrnet_pose/
+│   └── model_loader.py
+├── tests/
+├── CODE_OF_CONDUCT.md
+├── conftest.py
+├── CONTRIBUTING.md
+├── desktop.ini
+├── executioner.json
+├── LICENSE.txt
+├── models.json
+├── pyproject.toml
+├── README.md
+└── setup.py
+```
+
 
