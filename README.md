@@ -32,15 +32,17 @@ Supported features:
    - [Installation Instructions](https://learn.microsoft.com/en-us/cpp/build/vscpp-step-0-installation?view=msvc-170)
 - Rust Support
    - [Installation Instructions](https://rustup.rs/)
+ - Git Support
+   - [Installation Instructions](https://git-scm.com/downloads/win)
 #### 1. Clone the Repository
 ```
->> git clone https://github.com/DerrickJ1612/qnn_sample_apps.git
+git clone https://github.com/DerrickJ1612/qnn_sample_apps.git
 ```
 #### 2. Setup Virtual Environment
 ```
->> python -m venv venv
->> venv\Scripts\activate.ps1 # Linux: >> source venv/bin/activate
->> pip install -r \src\<App Name>\requirements.txt # Ex: pip install -r \src\deepseek_r1\requirements.txt
+python -m venv venv
+venv\Scripts\activate.ps1 
+pip install -r \src\<App Name>\requirements.txt # Ex: pip install -r \src\deepseek_r1\requirements.txt
 ```
 #### 3. Download Models
 | Model Name  | Description              | Download Source                                                                                                                                                                                                            |
@@ -62,8 +64,8 @@ We welcome contributions to this repository! Please refer to our [contributing g
 - All regression tests must pass
 - New features should include appropriate test coverage
 ```
->> cd ./qnn_sample_apps
->> pytest -vv
+cd ./qnn_sample_apps
+pytest -vv
 ```
 ## License
 This project is licensed under the [MIT](https://github.com/DerrickJ1612/qnn_sample_apps/blob/main/LICENSE.txt)
