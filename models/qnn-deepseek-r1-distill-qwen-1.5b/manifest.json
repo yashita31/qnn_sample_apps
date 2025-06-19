@@ -1,0 +1,37 @@
+{
+  "model_name": "deepseek_r1_1_5",
+  "version": "v2.1",
+  "files": [
+    {
+      "name": "deepseek_r1_1_5_ctx_v2.1.onnx_ctx.bin",
+      "size": "637.5 MB",
+      "type": "bin"
+    },
+    {
+      "name": "deepseek_r1_1_5_ctx_v2.1.onnx_ctx.onnx",
+      "size": "2.1 MB",
+      "type": "onnx"
+    },
+    {
+      "name": "deepseek_r1_1_5_embeddings_quant_v2.0.onnx",
+      "size": "139.1 MB",
+      "type": "onnx"
+    },
+    {
+      "name": "deepseek_r1_1_5_head_quant_v2.0.onnx",
+      "size": "139.1 MB",
+      "type": "onnx"
+    },
+    {
+      "name": "deepseek_r1_1_5_iter_v2.1.onnx_ctx.bin",
+      "size": "636.7 MB",
+      "type": "bin"
+    },
+    {
+      "name": "deepseek_r1_1_5_iter_v2.1.onnx_ctx.onnx",
+      "size": "2.1 MB",
+      "type": "onnx"
+    }
+  ],
+  "download_base_url": "https://qnn-sample-app-models.s3.us-west-2.amazonaws.com/qnn-deepseek-r1-distill-qwen-1.5b/"
+}
