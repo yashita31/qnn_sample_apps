@@ -43,16 +43,10 @@ Supported features:
 >> pip install -r \src\<App Name>\requirements.txt # Ex: pip install -r \src\deepseek_r1\requirements.txt
 ```
 #### 3. Download Models
-| Model Name  | Description              | Download Source                                                                                               |
-|-------------|--------------------------|---------------------------------------------------------------------------------------------------------------|
-| HRNetPose   | Human pose estimation    | [AI Hub](https://aihub.qualcomm.com/compute/models/hrnet_pose?domain=Computer+Vision&useCase=Pose+Estimation) |
-| DeepSeek R1 | Reasoning Language Model | [s3 Bucket](tbd)                                                                                              | 
-
-#### 4. Run models.py
-models.py will automatically place models in appropriate destination
-```
->> python models.py --model_directory (absolute path to directory where models were downloaded)
-```
+| Model Name  | Description              | Download Source                                                                                                                                                                                                            |
+|-------------|--------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| HRNetPose   | Human pose estimation    | [AI Hub](https://aihub.qualcomm.com/compute/models/hrnet_pose?domain=Computer+Vision&useCase=Pose+Estimation)                                                                                                              |
+| DeepSeek R1 | Reasoning Language Model | [Microsoft AI Toolkit](https://marketplace.visualstudio.com/items?itemName=ms-windows-ai-studio.windows-ai-studio); [Google Drive](https://drive.google.com/drive/folders/1hCopYw7rMdeOm3zV6NC2do9orzpKqAMf?usp=sharing)   | 
 
 ## Quick Start
 
