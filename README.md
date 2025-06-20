@@ -40,15 +40,27 @@ git clone https://github.com/DerrickJ1612/qnn_sample_apps.git
 ```
 #### 2. Setup Virtual Environment
 ```
-python -m venv venv
-venv\Scripts\activate.ps1 
-pip install -r \src\<App Name>\requirements.txt # Ex: pip install -r \src\deepseek_r1\requirements.txt
+python -m venv env_qnn_sample_apps
+```
+```
+env_qnn_sample_apps\Scripts\Activate.ps1
+```
+DeepSeek Example:
+```
+pip install -r \src\deepseek_r1\requirements.txt
 ```
 #### 3. Download Models
 | Model Name  | Description              | Download Source                                                                                                                                                                                                            |
 |-------------|--------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | HRNetPose   | Human pose estimation    | [AI Hub](https://aihub.qualcomm.com/compute/models/hrnet_pose?domain=Computer+Vision&useCase=Pose+Estimation)                                                                                                              |
 | DeepSeek R1 | Reasoning Language Model | [Microsoft AI Toolkit](https://marketplace.visualstudio.com/items?itemName=ms-windows-ai-studio.windows-ai-studio); [Google Drive](https://drive.google.com/drive/folders/1hCopYw7rMdeOm3zV6NC2do9orzpKqAMf?usp=sharing)   | 
+
+- After downloading model move them to: 
+
+  - `qnn_sample_apps/models/<subdirectory_of_model>`
+
+**Note:** You only need to move files ending in *.onnx and *.bin
+
 
 ## Quick Start
 
