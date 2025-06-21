@@ -66,8 +66,8 @@ pip install -r \src\deepseek_r1\requirements.txt
 
 | App Name               | CLI Command                                  |
 |------------------------|----------------------------------------------|
-| 'HRNet Pose Detection' | ` >> python ./src/hrnet_pose/main.py `       |
-| 'DeepSeek Local'       | ` >> python ./src/deepseek_r1/main.py --help` |
+| 'HRNet Pose Detection' | `python ./src/hrnet_pose/main.py `       |
+| 'DeepSeek Local'       | `python ./src/deepseek_r1/main.py --help` |
 
 ## Contributing
 We welcome contributions to this repository! Please refer to our [contributing guide](CONTRIBUTING.md) for how to contribute.
