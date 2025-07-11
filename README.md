@@ -72,7 +72,7 @@ pip install -r \src\deepseek_r1\requirements.txt
 | 'Local LLM'       | `python ./src/llm/main.py --help` |
 
 ## Contributing
-We welcome contributions to this repository! Please refer to our [contributing guide](CONTRIBUTING.md) for how to contribute.
+I welcome contributions to this repository! Please refer to our [contributing guide](CONTRIBUTING.md) for how to contribute.
 
 ## Testing
 - All regression tests must pass
