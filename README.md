@@ -67,7 +67,7 @@ pip install -r \src\deepseek_r1\requirements.txt
 | App Name               | CLI Command                                  |
 |------------------------|----------------------------------------------|
 | 'HRNet Pose Detection' | `python ./src/hrnet_pose/main.py `       |
-| 'DeepSeek Local'       | `python ./src/deepseek_r1/main.py --help` |
+| 'Local LLM'       | `python ./src/llm/main.py --help` |
 
 ## Contributing
 We welcome contributions to this repository! Please refer to our [contributing guide](CONTRIBUTING.md) for how to contribute.
@@ -96,7 +96,7 @@ QNN_SAMPLE_APPS/
 │   ├── pose_detection/
 ├── scripts/
 ├── src/
-│   ├── deepseek_r1/
+│   ├── llm/
 │   ├── hrnet_pose/
 │   └── model_loader.py
 ├── tests/
