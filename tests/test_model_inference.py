@@ -1,7 +1,7 @@
 
 from unittest.mock import patch
 from src.model_loader import ModelLoader
-from src.deepseek_r1.deepseek_model_inference import DeepSeekModelInference
+from src.llm.deepseek_model_inference import DeepSeekModelInference
 
 
 """
