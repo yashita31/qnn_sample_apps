@@ -88,11 +88,12 @@ This project is licensed under the [MIT](https://github.com/DerrickJ1612/qnn_sam
 ```
 QNN_SAMPLE_APPS/
 ├── models/
-│   ├── cpu-deepseek-r1-distill-qwen-7b/
 │   ├── hrnet_pose/
+│   ├── cpu-deepseek-r1-distill-qwen-7b/
 │   ├── qnn-deepseek-r1-distill-qwen-1.5b/
 │   ├── qnn-deepseek-r1-distill-qwen-7b/
 │   ├── qnn-deepseek-r1-distill-qwen-14b/
+│   ├── gemma-3-1b-it-ONNX-GQA/
 ├── notebooks/
 │   ├── llm/
 │   ├── pose_detection/
