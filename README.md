@@ -12,8 +12,9 @@ This repository contains sample apps for running ONNX models efficiently using [
 ## Available Apps
 | App Name | Model Used | Providers | Quick Start | Notebook | Blog | Video |
 |----------|------------|-----------|-------------|----------|-------|------|
-| HRNet Pose Detection | HRNetPose | CPU | [Complete](#quick-start) | [Complete](./notebooks/pose_detection/) | [Blog](https://www.qualcomm.com/developer/blog/2025/03/enable-pose-detection-snapdragon-x-elite-step-by-step-tutorial) | [Youtube](https://youtu.be/OASSOhlSpfY?si=gNJLRHAxpl4IUflv) |
-| DeepSeek Local | DeepSeek | QNN/CPU | [Complete](#quick-start) | [Complete](./notebooks/llm/) | 🚧 Coming Soon  | 🎬 Coming Soon |
+| HRNet Pose Detection | HRNetPose | QNN/CPU | [Complete](#quick-start) | [Complete](./notebooks/pose_detection/) | [Blog](https://www.qualcomm.com/developer/blog/2025/03/enable-pose-detection-snapdragon-x-elite-step-by-step-tutorial) | [Youtube](https://youtu.be/OASSOhlSpfY?si=gNJLRHAxpl4IUflv) |
+| DeepSeek Local | DeepSeek | QNN/CPU | [Complete](#quick-start) | [Complete](./notebooks/llm/) | [Blog](https://www.qualcomm.com/developer/project/5-part-series--enable-deepseek-on-snapdragon-x-elite)  | [Youtube](https://www.youtube.com/watch?v=VRDB_ob7ulA) |
+| Gemma-3 Local | Gemma-3_1B | CPU | [Complete](#quick-start) | [Complete](./notebooks/llm) | ❌ | ❌
 
 These apps demonstrate end-to-end inference using ONNX Runtime on devices with Hexagon NPUs. Each app includes:
 - Input preprocessing
@@ -54,6 +55,7 @@ pip install -r \src\deepseek_r1\requirements.txt
 |-------------|--------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | HRNetPose   | Human pose estimation    | [AI Hub](https://aihub.qualcomm.com/compute/models/hrnet_pose?domain=Computer+Vision&useCase=Pose+Estimation)                                                                                                              |
 | DeepSeek R1 | Reasoning Language Model | [Microsoft AI Toolkit](https://marketplace.visualstudio.com/items?itemName=ms-windows-ai-studio.windows-ai-studio); [Google Drive](https://drive.google.com/drive/folders/1hCopYw7rMdeOm3zV6NC2do9orzpKqAMf?usp=sharing)   | 
+| Gemma-3 1B | Instruction Model | [Hugging Face](https://huggingface.co/onnx-community/gemma-3-1b-it-ONNX-GQA); [Google Drive](https://drive.google.com/drive/folders/1hCopYw7rMdeOm3zV6NC2do9orzpKqAMf?usp=sharing) |
 
 - After downloading model move them to: 
 
@@ -67,7 +69,7 @@ pip install -r \src\deepseek_r1\requirements.txt
 | App Name               | CLI Command                                  |
 |------------------------|----------------------------------------------|
 | 'HRNet Pose Detection' | `python ./src/hrnet_pose/main.py `       |
-| 'DeepSeek Local'       | `python ./src/deepseek_r1/main.py --help` |
+| 'Local LLM'       | `python ./src/llm/main.py --help` |
 
 ## Contributing
 We welcome contributions to this repository! Please refer to our [contributing guide](CONTRIBUTING.md) for how to contribute.
@@ -96,7 +98,7 @@ QNN_SAMPLE_APPS/
 │   ├── pose_detection/
 ├── scripts/
 ├── src/
-│   ├── deepseek_r1/
+│   ├── llm/
 │   ├── hrnet_pose/
 │   └── model_loader.py
 ├── tests/

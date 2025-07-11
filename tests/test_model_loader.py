@@ -41,7 +41,7 @@ def test_validate_model_config_structure(load_config):
         if isinstance(default, str):
             assert default.endswith(".onnx"), f"{model_name} 'DEFAULT' must be an ONNX filename"
         elif isinstance(default, dict):
-            required_keys = ["EMBEDDING", "CONTEXT", "CONTEXT_ITER", "HEAD", "TOKENIZER", "META_DATA"]
+            required_keys = ["TOKENIZER", "META_DATA"]
             for key in required_keys:
                 assert key in default, f"{model_name} DEFAULT missing '{key}'"
             assert isinstance(default["META_DATA"], dict), f"{model_name} 'META_DATA' must be a dictionary"

@@ -1,4 +1,0 @@
-numpy
-onnxruntime==1.22.0
-tokenizers
-notebook
