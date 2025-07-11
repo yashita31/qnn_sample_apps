@@ -61,7 +61,7 @@ pip install -r \src\deepseek_r1\requirements.txt
 
   - `qnn_sample_apps/models/<subdirectory_of_model>`
 
-**Note:** You only need to move files ending in *.onnx and *.bin
+**Note:** You only need to move files ending in *.onnx and *.bin/*.data
 
 
 ## Quick Start
