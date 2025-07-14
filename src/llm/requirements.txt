@@ -2,3 +2,11 @@ numpy==2.3.0
 onnxruntime_qnn==1.22.0
 tokenizers==0.21.1
 notebook==7.4.1
+transformers==4.53.2
+streamlit==1.46.1
+chromadb==1.0.15
+PyMuPDF==1.26.3
+python-docx==1.2.0
+numpy==2.3.0
+torch==2.7.1
+openai==1.95.1
