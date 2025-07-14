@@ -38,19 +38,26 @@ Supported features:
 #### 1. Clone the Repository
 ```
 git clone https://github.com/DerrickJ1612/qnn_sample_apps.git
+cd qnn_sample_apps
 ```
 #### 2. Setup Virtual Environment
 ```
 python -m venv env_qnn_sample_apps
 ```
 ```
-env_qnn_sample_apps\Scripts\Activate.ps1
+env_qnn_sample_apps\Scripts\activate.bat
 ```
-DeepSeek Example:
+#### 3. DeepSeek Example:
+The below command downloads the onnx supported version of mobile bert embeddings model
 ```
-pip install -r \src\deepseek_r1\requirements.txt
+python .\src\llm\mobile_bert.py
 ```
-#### 3. Download Models
+
+
+```
+pip install -r .\src\llm\requirements.txt
+```
+#### 4. Download Models
 | Model Name  | Description              | Download Source                                                                                                                                                                                                            |
 |-------------|--------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | HRNetPose   | Human pose estimation    | [AI Hub](https://aihub.qualcomm.com/compute/models/hrnet_pose?domain=Computer+Vision&useCase=Pose+Estimation)                                                                                                              |
@@ -68,21 +75,8 @@ pip install -r \src\deepseek_r1\requirements.txt
 
 | App Name               | CLI Command                                  |
 |------------------------|----------------------------------------------|
-| 'HRNet Pose Detection' | `python ./src/hrnet_pose/main.py `       |
-| 'Local LLM'       | `python ./src/llm/main.py --help` |
 
-## Contributing
-I welcome contributions to this repository! Please refer to our [contributing guide](CONTRIBUTING.md) for how to contribute.
-
-## Testing
-- All regression tests must pass
-- New features should include appropriate test coverage
-```
-cd ./qnn_sample_apps
-pytest -vv
-```
-## License
-This project is licensed under the [MIT](https://github.com/DerrickJ1612/qnn_sample_apps/blob/main/LICENSE.txt)
+| 'Local LLM'       | `streamlit run ./src/llm/streamlist_haqathon_ui.py`
 
 ## Directory Structure
 ```
@@ -96,10 +90,13 @@ QNN_SAMPLE_APPS/
 │   ├── gemma-3-1b-it-ONNX-GQA/
 ├── notebooks/
 │   ├── llm/
-│   ├── pose_detection/
 ├── scripts/
 ├── src/
 │   ├── llm/
+        ├── embedder.py
+        ├── mobile_bert.py
+        ├── rag_pipeline.py
+        ├── streamlist_haqathon_ui.py
 │   ├── hrnet_pose/
 │   └── model_loader.py
 ├── tests/
